@@ -37,9 +37,12 @@ async def main():
     node = ArtNetNode('192.168.1.174', 6454)
 
     holder = StripHolder()
-    holder.add_strip([200, 0, 0] * 100)
-    holder.add_strip([0, 200, 0] * 100)
-    holder.add_strip([0, 0, 200] * 100)
+    holder.add_strip([200, 0, 0] * 85)
+    # holder.add_strip([0, 200, 0] * 85)
+    # holder.add_strip([0, 0, 200] * 85)
+    # holder.add_strip([200, 0, 200] * 85)
+    # holder.add_strip([0, 200, 200] * 85)
+    # holder.add_strip([200, 200, 0] * 85)
 
     colors = holder.get_universes()
 
