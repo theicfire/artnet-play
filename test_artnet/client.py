@@ -34,11 +34,12 @@ class StripHolder:
 
 async def main():
     # node = ArtNetNode('192.168.1.139', 6454)
-    node = ArtNetNode('192.168.1.174', 6454)
+    # node = ArtNetNode('192.168.1.174', 6454)
+    node = ArtNetNode('127.0.0.1', 6454)
 
     holder = StripHolder()
-    holder.add_strip([200, 0, 0] * 85)
-    # holder.add_strip([0, 200, 0] * 85)
+    holder.add_strip([200, 0, 0] * 170)
+    holder.add_strip([0, 200, 0] * 170)
     # holder.add_strip([0, 0, 200] * 85)
     # holder.add_strip([200, 0, 200] * 85)
     # holder.add_strip([0, 200, 200] * 85)
@@ -49,7 +50,7 @@ async def main():
     # Create universes and start LED breathing tasks
     tasks = []
     for i in range(len(colors)):
-        print('universe', i, 'colors', colors[i])
+        print('universe', i)
         universe = node.add_universe(i)
         tasks.append(breathe_led(universe, colors[i]))
 

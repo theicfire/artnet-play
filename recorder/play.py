@@ -5,7 +5,8 @@ from collections import namedtuple
 import socket
 from chase_types import ArtNetData
 
-TARGET_IP = "127.0.0.1"
+# TARGET_IP = "127.0.0.1"
+TARGET_IP = "192.168.2.2"
 TARGET_PORT = 6454
 
 
@@ -14,7 +15,6 @@ class ArtNetPlayer():
     sock = None
 
     def __init__(self):
-        # read json file
         with open('artnet_data.json', 'r') as f:
             json_data = json.load(f)
             self.data_list = [ArtNetData(entry['time'], base64.b64decode(
@@ -28,24 +28,19 @@ class ArtNetPlayer():
         i = 0
         while i < len(self.data_list) - 1:
             entry = self.data_list[i]
-            next_entry = self.data_list[i+1]
             ms = (time.time() - start_time) * 1000
-            if ms >= next_entry.time:
-                i += 1
+
+            if ms < entry.time:
+                print('sleep', entry.time - ms)
+                time.sleep((entry.time - ms) / 1000.0)
                 continue
 
-            selected_entry = None
-            if ms - entry.time < next_entry.time - ms:
-                selected_entry = entry
-                i += 1
-            else:
-                selected_entry = next_entry
-                i += 2
+            selected_entry = entry
+            i += 1
             if self.sock:
-                print('play out', selected_entry.time)
+                print('play out', selected_entry.time, selected_entry.data[14])
                 self.sock.sendto(selected_entry.data, (TARGET_IP, TARGET_PORT))
 
-            time.sleep(1 / 60.0)
         print('Done playing')
 
 

@@ -24,15 +24,18 @@ class ArtNetRecorder(asyncio.DatagramProtocol):
         self.data_list.append(ArtNetData(ms, data))
 
     def datagram_received(self, data, addr):
+        data = bytearray(data)  # copy, so it can be edited
         # print('data', data)
         if data.startswith(ART_NET_HEADER):
             opcode = data[8:10]
             if opcode == b'\x00P':
+                sequence_id = data[12]
+                data[12] = 0  # Overwrite sequence_id
                 universe = data[14] + 256 * data[15]
                 dmx_data = data[18:]
                 has_data = any(dmx_data)
                 print(
-                    f"Received Art-Net data from {addr[0]}:{addr[1]} for Universe {universe}, has_data: {has_data}")
+                    f"Received Art-Net data from {addr[0]}:{addr[1]} for Universe {universe}, has_data: {has_data}, sequence: {sequence_id} (now {data[12]})")
                 self.add_data(data)
 
     async def receive_artnet_data(self):
