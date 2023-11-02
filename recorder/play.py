@@ -11,34 +11,33 @@ TARGET_PORT = 6454
 
 
 class ArtNetPlayer():
-    data_list = []
     sock = None
 
     def __init__(self):
-        with open('artnet_data.json', 'r') as f:
-            json_data = json.load(f)
-            self.data_list = [ArtNetData(entry['time'], base64.b64decode(
-                entry['data'])) for entry in json_data]
-
         # TODO sock.close() later?
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def play(self):
+    def play(self, file_name):
+        data_list = []
+        with open(file_name, 'r') as f:
+            json_data = json.load(f)
+            data_list = [ArtNetData(entry['time'], base64.b64decode(
+                entry['data'])) for entry in json_data]
         start_time = time.time()
         i = 0
-        while i < len(self.data_list) - 1:
-            entry = self.data_list[i]
+        while i < len(data_list) - 1:
+            entry = data_list[i]
             ms = (time.time() - start_time) * 1000
 
             if ms < entry.time:
-                print('sleep', entry.time - ms)
                 time.sleep((entry.time - ms) / 1000.0)
                 continue
 
             selected_entry = entry
             i += 1
             if self.sock:
-                print('play out', selected_entry.time, selected_entry.data[14])
+                universe = selected_entry.data[14]
+                print('play out', selected_entry.time, universe)
                 self.sock.sendto(selected_entry.data, (TARGET_IP, TARGET_PORT))
 
         print('Done playing')
@@ -46,4 +45,4 @@ class ArtNetPlayer():
 
 if __name__ == "__main__":
     player = ArtNetPlayer()
-    player.play()
+    player.play('artnet_data.json')
