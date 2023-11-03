@@ -13,8 +13,8 @@ sudo apt update
 sudo apt install python3.11-venv
 
 # TODO make requirements.txt
-/home/pi/artnet-play/venv/bin/pip install simpleaudio
-/home/pi/artnet-play/venv/bin/pip  install RPi.GPIO
+/home/pi/artnet-play/pi/venv/bin/pip install simpleaudio
+/home/pi/artnet-play/pi/venv/bin/pip  install RPi.GPIO
 
 # Run if venv doesn't exist
 
