@@ -1,17 +1,22 @@
-import json
-import base64
-import time
-import socket
-from chase_types import ArtNetData
-import asyncio
-from pathlib import Path
-import sys
 import simpleaudio as sa
+import sys
+from pathlib import Path
+import asyncio
+import socket
+import time
+import base64
+import json
 
 if sys.platform == 'linux' or sys.platform == 'linux2':
     import RPi.GPIO as GPIO
 else:
     import RPi_GPIO_stub as GPIO
+
+current_dir = Path(__file__).parent
+recorder_package_path = (current_dir / "../recorder").resolve()
+sys.path.append(str(recorder_package_path))
+
+from recorder import types  # noqa
 
 
 # TARGET_IP = "127.0.0.1"
