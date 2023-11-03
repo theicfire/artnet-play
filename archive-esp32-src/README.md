@@ -1,5 +1,7 @@
 This is a proof of concept to consume ArtNet on an ESP32, which then controls LEDs via FastLED.
 
+These docs are a week old, lots has changed!!
+
 # Arduino
 Libraries required:
 - ESP32 arduino library (includes WiFi.h, AsyncUDP.h)
