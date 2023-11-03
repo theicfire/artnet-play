@@ -4,7 +4,7 @@ import time
 import socket
 from chase_types import ArtNetData
 import asyncio
-
+from pathlib import Path
 import sys
 
 if sys.platform == 'linux' or sys.platform == 'linux2':
@@ -45,6 +45,8 @@ class ArtNetPlayer():
         time.sleep(1)
 
     async def play(self, file_name, loop=False):
+        file_name = str(Path(__file__).with_name(file_name))
+
         self.running = True
         data_list = []
         last_played = {}  # universe -> data

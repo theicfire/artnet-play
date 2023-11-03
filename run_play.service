@@ -1,0 +1,17 @@
+[Unit]
+Description=Run play.py
+# OnFailure=deploy-agent-failure-notifier.service
+
+[Service]
+Environment=NODE_PATH=/usr/local/share/.config/yarn/global/node_modules
+ExecStart=/usr/bin/python -u /home/pi/artnet-play/recorder/play.py
+Restart=always
+#TimeoutStopSec=1
+#RestartSec=1
+#StartLimitInterval=60
+#StartLimitBurst=5
+#SyslogIdentifier=deploy-agent
+
+[Install]
+WantedBy=default.target
+
