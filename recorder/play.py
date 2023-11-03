@@ -28,6 +28,7 @@ class ArtNetPlayer():
         # self.sock.setblocking(False)
         # self.loop = asyncio.get_event_loop()
         self.running = False
+        self.watchdog = time.time()
 
     def fade_out(self, universe_last_played):
         # TODO better brightness curve
@@ -61,6 +62,7 @@ class ArtNetPlayer():
         else:
             print('Play main sequence')
         while self.running:
+            self.ping_watchdog()
             entry = data_list[i]
             ms = (time.time() - start_time) * 1000
 
@@ -81,8 +83,12 @@ class ArtNetPlayer():
                 universe = selected_entry.data[14]
                 # print('play out', selected_entry.time, universe)
                 # TODO make async with loop.sock_sendto .. python 3.11
-                self.sock.sendto(selected_entry.data, (TARGET_IP, TARGET_PORT))
+                self.sock.sendto(selected_entry.data,
+                                 (TARGET_IP, TARGET_PORT))
                 last_played[universe] = selected_entry.data
+            else:
+                print('Cannot find socket, quitting..')
+                sys.exit(1)
 
         if loop:
             print('Fade out')
@@ -93,6 +99,12 @@ class ArtNetPlayer():
 
     def stop(self):
         self.running = False
+
+    def ping_watchdog(self):
+        self.watchdog = time.time()
+
+    def is_hanging(self):
+        return time.time() - self.watchdog > 2
 
     def close(self):
         self.running = False
@@ -129,6 +141,11 @@ async def main():
             await player.play('artnet_data.json')
             play_task = play_background(player)
             clear_event_detect(PIN)
+        if player.is_hanging():
+            print('Player is hanging, quitting..')
+            GPIO.cleanup()
+            player.close()
+            sys.exit(1)
 
     # GPIO.cleanup()
 
