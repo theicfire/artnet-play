@@ -18,7 +18,7 @@ project_root = (current_dir / "..").resolve()
 sys.path.append(str(project_root))
 # sys.path.append(str(recorder_package_path))
 
-from recorder.types import ArtNetData  # noqa
+from recorder.recorder_types import ArtNetData  # noqa
 
 # TARGET_IP = "127.0.0.1"
 # TARGET_IP = "192.168.2.2"
@@ -55,7 +55,7 @@ class ArtNetPlayer():
 
     async def play(self, file_name, loop=False):
         file_name = str(
-            (Path(__file__).parent.parent / "recorder/blah.txt").with_name(file_name))
+            (Path(__file__).parent.parent / "recorder" / file_name))
 
         self.running = True
         data_list = []

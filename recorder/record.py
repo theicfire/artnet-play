@@ -3,7 +3,8 @@ import asyncio
 import json
 from collections import namedtuple
 import base64
-from chase_types import ArtNetData
+from recorder_types import ArtNetData
+from pathlib import Path
 
 ART_NET_PORT = 6454
 ART_NET_HEADER = b'Art-Net\x00'
@@ -57,12 +58,15 @@ class ArtNetRecorder(asyncio.DatagramProtocol):
                     self.transport.close()
 
     def save_to_json(self):
-        with open('artnet_data.json', 'w') as f:
+        fname = str((Path(__file__)).with_name('artnet_data.json'))
+
+        with open(fname, 'w') as f:
             json_data = [{
                 'time': entry.time,
                 'data': base64.b64encode(entry.data).decode('utf-8')
             } for entry in self.data_list]
             json.dump(json_data, f)
+            print('Saved recording to', fname)
 
 
 async def main():
