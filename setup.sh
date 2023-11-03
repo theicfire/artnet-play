@@ -7,11 +7,16 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Define the service file path
-SERVICE_FILE=run_play.service
-
-cp $SERVICE_FILE /etc/systemd/system/
-
+PLAY_SERVICE_FILE=run_play.service
+cp $PLAY_SERVICE_FILE /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable $SERVICE_FILE
-systemctl restart $SERVICE_FILE
-echo "Service '$SERVICE_FILE' has been installed, enabled, and started."
+systemctl enable $PLAY_SERVICE_FILE
+systemctl restart $PLAY_SERVICE_FILE
+echo "Service '$PLAY_SERVICE_FILE' has been installed, enabled, and started."
+
+WIFI_SERVICE_FILE=disable_wifi_power_save.service
+cp $WIFI_SERVICE_FILE /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable $WIFI_SERVICE_FILE
+systemctl restart $WIFI_SERVICE_FILE
+echo "Service '$WIFI_SERVICE_FILE' has been installed, enabled, and started."
