@@ -1,9 +1,26 @@
+set -e
 #!/bin/bash
 
 # Check if the script is running as root
 if [ "$(id -u)" -ne 0 ]; then
   echo "This script must be run as root." >&2
   exit 1
+fi
+
+sudo apt update
+
+# Really should exist by default.. https://github.com/raspberrypi/bookworm-feedback/issues/90
+sudo apt install python3.11-venv
+
+# TODO make requirements.txt
+/home/pi/artnet-play/venv/bin/pip install simpleaudio
+/home/pi/artnet-play/venv/bin/pip  install RPi.GPIO
+
+# Run if venv doesn't exist
+
+if [ ! -d "venv" ]; then
+  echo "venv doesn't exist, creating..."
+  python3 -m venv venv
 fi
 
 # Define the service file path
