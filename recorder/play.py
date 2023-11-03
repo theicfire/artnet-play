@@ -126,6 +126,8 @@ def clear_event_detect(pin):
 
 async def main():
     player = ArtNetPlayer()
+    audio_fname = str(Path(__file__).with_name("arcade.wav"))
+    wave_obj = sa.WaveObject.from_wave_file(audio_fname)
 
     play_task = play_background(player)
 
@@ -140,8 +142,6 @@ async def main():
             print("Pin fell! Now read: ", GPIO.event_detected(PIN))
             player.stop()
 
-            audio_fname = str(Path(__file__).with_name("arcade.wav"))
-            wave_obj = sa.WaveObject.from_wave_file(audio_fname)
             play_obj = wave_obj.play()
             await play_task
             await player.play('artnet_data.json')
