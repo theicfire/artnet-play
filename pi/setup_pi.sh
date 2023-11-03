@@ -12,16 +12,14 @@ sudo apt update
 # Really should exist by default.. https://github.com/raspberrypi/bookworm-feedback/issues/90
 sudo apt install python3.11-venv
 
-# TODO make requirements.txt
-/home/pi/artnet-play/pi/venv/bin/pip install simpleaudio
-/home/pi/artnet-play/pi/venv/bin/pip  install RPi.GPIO
-
-# Run if venv doesn't exist
-
 if [ ! -d "venv" ]; then
   echo "venv doesn't exist, creating..."
   python3 -m venv venv
 fi
+
+# TODO make requirements.txt
+/home/pi/artnet-play/pi/venv/bin/pip install simpleaudio
+/home/pi/artnet-play/pi/venv/bin/pip  install RPi.GPIO
 
 # Define the service file path
 PLAY_SERVICE_FILE=run_play.service

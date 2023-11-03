@@ -13,11 +13,12 @@ else:
     import RPi_GPIO_stub as GPIO
 
 current_dir = Path(__file__).parent
-recorder_package_path = (current_dir / "../recorder").resolve()
-sys.path.append(str(recorder_package_path))
+# recorder_package_path = (current_dir / "../recorder").resolve()
+project_root = (current_dir / "..").resolve()
+sys.path.append(str(project_root))
+# sys.path.append(str(recorder_package_path))
 
-from recorder import types  # noqa
-
+from recorder.types import ArtNetData  # noqa
 
 # TARGET_IP = "127.0.0.1"
 # TARGET_IP = "192.168.2.2"
@@ -53,7 +54,8 @@ class ArtNetPlayer():
         time.sleep(1)
 
     async def play(self, file_name, loop=False):
-        file_name = str(Path(__file__).with_name(file_name))
+        file_name = str(
+            (Path(__file__).parent.parent / "recorder/blah.txt").with_name(file_name))
 
         self.running = True
         data_list = []
