@@ -1,3 +1,4 @@
+import traceback
 import simpleaudio as sa
 import sys
 from pathlib import Path
@@ -36,7 +37,6 @@ class ArtNetPlayer():
         # self.sock.setblocking(False)
         # self.loop = asyncio.get_event_loop()
         self.running = False
-        self.watchdog = time.time()
 
     def fade_out(self, universe_last_played):
         # TODO better brightness curve
@@ -56,6 +56,7 @@ class ArtNetPlayer():
     async def play(self, file_name, loop=False):
         file_name = str(
             (Path(__file__).parent.parent / "recorder" / file_name))
+        print('read from', file_name)
 
         self.running = True
         data_list = []
@@ -71,7 +72,6 @@ class ArtNetPlayer():
         else:
             print('Play main sequence')
         while self.running:
-            self.ping_watchdog()
             entry = data_list[i]
             ms = (time.time() - start_time) * 1000
 
@@ -109,12 +109,6 @@ class ArtNetPlayer():
     def stop(self):
         self.running = False
 
-    def ping_watchdog(self):
-        self.watchdog = time.time()
-
-    def is_hanging(self):
-        return time.time() - self.watchdog > 2
-
     def close(self):
         self.running = False
         if self.sock:
@@ -122,8 +116,20 @@ class ArtNetPlayer():
             self.sock = None
 
 
+def handle_task_result(task):
+    try:
+        # This will re-raise any exception that was raised in the task.
+        task.result()
+    except Exception as e:
+        print(f"An error occurred in play_background: {e}")
+        traceback.print_exc()  # This will print the stack trace.
+        sys.exit(1)  # Exit the program.
+
+
 def play_background(player):
-    return asyncio.create_task(player.play('artnet_data.json', loop=True))
+    task = asyncio.create_task(player.play('artnet_data.json', loop=True))
+    task.add_done_callback(handle_task_result)
+    return task
 
 
 def clear_event_detect(pin):
@@ -155,12 +161,6 @@ async def main():
             play_obj.wait_done()  # Should be immediate
             play_task = play_background(player)
             clear_event_detect(PIN)
-        if player.is_hanging():
-            print('Player is hanging, quitting..')
-            GPIO.cleanup()
-            player.close()
-            sys.exit(1)
-
     # GPIO.cleanup()
 
 
