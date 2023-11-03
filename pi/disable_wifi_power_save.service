@@ -1,3 +1,5 @@
+# It seems that the wifi will just disconnect with power saving. That's an odd default, hmm.
+
 [Unit]
 Description=Disable power saving on wlan0
 After=network.target
