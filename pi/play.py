@@ -56,7 +56,6 @@ class ArtNetPlayer():
     async def play(self, file_name, loop=False):
         file_name = str(
             (Path(__file__).parent.parent / "recorder" / file_name))
-        print('read from', file_name)
 
         self.running = True
         data_list = []
