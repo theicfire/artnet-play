@@ -17,7 +17,7 @@ else:
 TARGET_PORT = 6454
 TARGET_IP = "192.168.1.148"  # wifi
 if sys.platform == 'linux' or sys.platform == 'linux2':
-    TARGET_IP = "10.42.0.131"  # ethernet
+    TARGET_IP = "10.42.0.2"  # ethernet
 
 
 class ArtNetPlayer():
