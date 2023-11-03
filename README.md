@@ -34,6 +34,8 @@ This repo does two things:
 
 play.py should be running now, and will run at startup.
 
-
 ## Get Logs
 * journalctl -u run_play.service -f
+
+# Setting up the chroma.tech controller
+In a private Notion atm: https://www.notion.so/Ascension-Pod-Electronics-Roadmap-c0afe850894a45a8a2818197fb139f11
