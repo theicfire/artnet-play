@@ -14,19 +14,19 @@ else:
     import RPi_GPIO_stub as GPIO
 
 current_dir = Path(__file__).parent
-# recorder_package_path = (current_dir / "../recorder").resolve()
 project_root = (current_dir / "..").resolve()
 sys.path.append(str(project_root))
-# sys.path.append(str(recorder_package_path))
 
 from recorder.recorder_types import ArtNetData  # noqa
 
-# TARGET_IP = "127.0.0.1"
-# TARGET_IP = "192.168.2.2"
 TARGET_PORT = 6454
-TARGET_IP = "192.168.1.148"  # wifi
+TARGET_IP = "192.168.1.148"  # wifi, for local development
 if sys.platform == 'linux' or sys.platform == 'linux2':
     TARGET_IP = "10.42.0.2"  # ethernet
+
+BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
+MAIN_SEQUENCE_FNAME = 'main_sequence.json'
+AUDIO_FNAME = 'arcade.wav'
 
 
 class ArtNetPlayer():
@@ -126,7 +126,8 @@ def handle_task_result(task):
 
 
 def play_background(player):
-    task = asyncio.create_task(player.play('artnet_data.json', loop=True))
+    task = asyncio.create_task(player.play(
+        BACKGROUND_SEQUENCE_FNAME, loop=True))
     task.add_done_callback(handle_task_result)
     return task
 
@@ -138,7 +139,7 @@ def clear_event_detect(pin):
 
 async def main():
     player = ArtNetPlayer()
-    audio_fname = str(Path(__file__).with_name("arcade.wav"))
+    audio_fname = str(Path(__file__).with_name(AUDIO_FNAME))
     wave_obj = sa.WaveObject.from_wave_file(audio_fname)
 
     play_task = play_background(player)
@@ -156,7 +157,7 @@ async def main():
 
             play_obj = wave_obj.play()
             await play_task
-            await player.play('artnet_data.json')
+            await player.play(MAIN_SEQUENCE_FNAME)
             play_obj.wait_done()  # Should be immediate
             play_task = play_background(player)
             clear_event_detect(PIN)
