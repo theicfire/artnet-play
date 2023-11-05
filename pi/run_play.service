@@ -7,9 +7,9 @@ Environment=NODE_PATH=/usr/local/share/.config/yarn/global/node_modules
 ExecStart=/home/pi/artnet-play/pi/venv/bin/python -u /home/pi/artnet-play/pi/play.py
 Restart=always
 #TimeoutStopSec=1
-#RestartSec=1
-#StartLimitInterval=60
-#StartLimitBurst=5
+RestartSec=1
+StartLimitInterval=30
+StartLimitBurst=30
 #SyslogIdentifier=deploy-agent
 
 [Install]

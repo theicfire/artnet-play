@@ -41,7 +41,7 @@ class ArtNetPlayer():
     def fade_out(self, universe_last_played):
         # TODO better brightness curve
         FPS = 60
-        FADE_TIME__ms = 1000
+        FADE_TIME__ms = 500
         NUM_STEPS = int(FPS * FADE_TIME__ms / 1000.0)
         for i in range(NUM_STEPS + 1):
             for _, raw_data in universe_last_played.items():
@@ -51,7 +51,7 @@ class ArtNetPlayer():
                 if self.sock:
                     self.sock.sendto(data, (TARGET_IP, TARGET_PORT))
             time.sleep(1.0 / FPS)
-        time.sleep(1)
+        time.sleep(0.5)
 
     async def play(self, file_name, loop=False):
         file_name = str(
