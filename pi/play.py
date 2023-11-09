@@ -162,11 +162,6 @@ def play_background(player):
     return task
 
 
-def clear_event_detect(pin):
-    # Read and ignore
-    GPIO.event_detected(pin)
-
-
 async def main():
     player = ArtNetPlayer()
     audio_fname = str(Path(__file__).with_name(AUDIO_FNAME))
@@ -179,18 +174,31 @@ async def main():
     GPIO.setup(PIN, GPIO.IN)
     GPIO.add_event_detect(PIN, GPIO.FALLING)
 
+    play_obj = None
+    async def reset_to_background():
+        player.stop()
+        await play_task
+        play_task = play_background(player)
+        play_obj.stop()
+        play_obj = None
+
     while True:
         await asyncio.sleep(0.1)
         if GPIO.event_detected(PIN):
-            print("Pin fell! Now read: ", GPIO.event_detected(PIN))
-            player.stop()
+            if play_obj == None:
+                print("Pin fell! Now read: ", GPIO.event_detected(PIN))
+                play_obj = wave_obj.play()
 
-            play_obj = wave_obj.play()
-            await play_task
-            await player.play(MAIN_SEQUENCE_FNAME)
-            play_obj.wait_done()  # Should be immediate
-            play_task = play_background(player)
-            clear_event_detect(PIN)
+                player.stop()
+                await play_task
+                print('try play main after await')
+                play_task = player.play(MAIN_SEQUENCE_FNAME)
+            else:
+                print('Pin fell. Cancelling because we are already playing')
+                await reset_to_background()
+        ascension_newly_finished = not player.running and play_obj != None and not play_obj.is_playing()
+        if ascension_newly_finished:
+            await reset_to_background()
     # GPIO.cleanup()
 
 
