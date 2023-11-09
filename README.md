@@ -34,7 +34,7 @@ This repo does two things:
 - Now upload all these files on by running this locally:
   - rsync -avz ../artnet-play  pi@192.168.1.156:~/
 - Then run this on the RPI:
-  - cd ~/artnet-play && sudo sh setup.sh
+  - `cd ~/artnet-play/pi && sudo sh setup_pi.sh`
 
 play.py should be running now, and will run at startup. Note the following:
 
@@ -44,7 +44,7 @@ play.py should be running now, and will run at startup. Note the following:
 
 ## Get Logs
 
-- journalctl -u run_play.service -f
+- `journalctl -u run_play.service -f`
 
 # Setting up the chroma.tech controller
 

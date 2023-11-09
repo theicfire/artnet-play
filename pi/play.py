@@ -20,13 +20,43 @@ sys.path.append(str(project_root))
 from recorder.recorder_types import ArtNetData  # noqa
 
 TARGET_PORT = 6454
-TARGET_IP = "192.168.1.148"  # wifi, for local development
+# TARGET_IP = "192.168.1.148"  # wifi, for local development
+ch_to_ip = {
+    0: "192.168.1.148",
+    1: "192.168.1.148",
+    2: "192.168.1.148",
+    3: "192.168.1.148",
+    4: "192.168.1.148",
+    5: "192.168.1.148",
+    6: "192.168.1.148",
+    7: "192.168.1.148",
+    8: "192.168.1.148",
+    9: "192.168.1.148",
+    10: "192.168.1.148",
+    11: "192.168.1.148",
+    12: "192.168.1.148",
+}
+
 if sys.platform == 'linux' or sys.platform == 'linux2':
-    TARGET_IP = "10.42.0.2"  # ethernet
+    ch_to_ip = {
+        0: "10.42.0.2",
+        1: "10.42.0.2",
+        2: "10.42.0.2",
+        3: "10.42.0.2",
+        4: "10.42.0.2",
+        5: "10.42.0.2",
+        6: "10.42.0.2",
+        7: "10.42.0.2",
+        8: "10.42.0.3",
+        9: "10.42.0.3",
+        10: "10.42.0.3",
+        11: "10.42.0.3",
+        12: "10.42.0.3",
+    }
 
 BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
 MAIN_SEQUENCE_FNAME = 'main_sequence.json'
-AUDIO_FNAME = 'arcade.wav'
+AUDIO_FNAME = 'ascension.wav'
 
 
 class ArtNetPlayer():
@@ -44,12 +74,12 @@ class ArtNetPlayer():
         FADE_TIME__ms = 500
         NUM_STEPS = int(FPS * FADE_TIME__ms / 1000.0)
         for i in range(NUM_STEPS + 1):
-            for _, raw_data in universe_last_played.items():
+            for universe, raw_data in universe_last_played.items():
                 data = bytearray(raw_data)
                 for j in range(18, len(data)):
                     data[j] = int(data[j] * (NUM_STEPS - i) / NUM_STEPS)
                 if self.sock:
-                    self.sock.sendto(data, (TARGET_IP, TARGET_PORT))
+                    self.sock.sendto(data, (ch_to_ip[universe], TARGET_PORT))
             time.sleep(1.0 / FPS)
         time.sleep(0.5)
 
@@ -92,7 +122,7 @@ class ArtNetPlayer():
                 # print('play out', selected_entry.time, universe)
                 # TODO make async with loop.sock_sendto .. python 3.11
                 self.sock.sendto(selected_entry.data,
-                                 (TARGET_IP, TARGET_PORT))
+                                 (ch_to_ip[universe], TARGET_PORT))
                 last_played[universe] = selected_entry.data
             else:
                 print('Cannot find socket, quitting..')
