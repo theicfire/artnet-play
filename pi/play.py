@@ -67,11 +67,24 @@ class ArtNetPlayer():
         # self.sock.setblocking(False)
         # self.loop = asyncio.get_event_loop()
         self.running = False
+        file_name = str(
+            (Path(__file__).parent.parent / "recorder" / MAIN_SEQUENCE_FNAME))
+        with open(file_name, 'r') as f:
+            json_data = json.load(f)
+            self.main_sequence = [ArtNetData(entry['time'], base64.b64decode(
+                entry['data'])) for entry in json_data]
+        
+        file_name = str(
+            (Path(__file__).parent.parent / "recorder" / BACKGROUND_SEQUENCE_FNAME))
+        with open(file_name, 'r') as f:
+            json_data = json.load(f)
+            self.background_sequence = [ArtNetData(entry['time'], base64.b64decode(
+                entry['data'])) for entry in json_data]
 
     def fade_out(self, universe_last_played):
         # TODO better brightness curve
         FPS = 60
-        FADE_TIME__ms = 500
+        FADE_TIME__ms = 250
         NUM_STEPS = int(FPS * FADE_TIME__ms / 1000.0)
         for i in range(NUM_STEPS + 1):
             for universe, raw_data in universe_last_played.items():
@@ -81,25 +94,22 @@ class ArtNetPlayer():
                 if self.sock:
                     self.sock.sendto(data, (ch_to_ip[universe], TARGET_PORT))
             time.sleep(1.0 / FPS)
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
-    async def play(self, file_name, loop=False):
-        file_name = str(
-            (Path(__file__).parent.parent / "recorder" / file_name))
+    async def play(self, is_main):
+        
 
+        loop = not is_main
         self.running = True
         data_list = []
         last_played = {}  # universe -> data
-        with open(file_name, 'r') as f:
-            json_data = json.load(f)
-            data_list = [ArtNetData(entry['time'], base64.b64decode(
-                entry['data'])) for entry in json_data]
+        data_list = self.main_sequence if is_main else self.background_sequence
         start_time = time.time()
         i = 0
-        if loop:
-            print('Play background LED sequence')
-        else:
+        if is_main:
             print('Play main LED sequence')
+        else:
+            print('Play background LED sequence')
         while self.running:
             entry = data_list[i]
             ms = (time.time() - start_time) * 1000
@@ -128,12 +138,12 @@ class ArtNetPlayer():
                 print('Cannot find socket, quitting..')
                 sys.exit(1)
 
-        if loop:
+        if is_main:
+            print('Done playing main sequence')
+        else:
             print('Fade out')
             self.fade_out(last_played)
             print('Done playing background sequence')
-        else:
-            print('Done playing main sequence')
 
     def stop(self):
         self.running = False
@@ -157,13 +167,13 @@ def handle_task_result(task):
 
 def play_background(player):
     task = asyncio.create_task(player.play(
-        BACKGROUND_SEQUENCE_FNAME, loop=True))
+        is_main=False))
     task.add_done_callback(handle_task_result)
     return task
 
 def play_main(player):
     task = asyncio.create_task(player.play(
-        MAIN_SEQUENCE_FNAME, loop=False))
+        is_main=True))
     task.add_done_callback(handle_task_result)
     return task
 
@@ -200,6 +210,7 @@ async def main():
 
                 player.stop()
                 await play_task
+                print("Now play main")
                 play_task = play_main(player)
             else:
                 print('Pin fell. Cancelling because we are already playing')
@@ -210,7 +221,7 @@ async def main():
             if ascension_finished:
                 print('Finished ascension')
                 await reset_to_background()
-            elif time.time() - ascend_print__s > 2:
+            elif time.time() - ascend_print__s > .5:
                 print('Ascension running..')
                 ascend_print__s = time.time()
 
