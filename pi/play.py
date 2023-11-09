@@ -161,6 +161,12 @@ def play_background(player):
     task.add_done_callback(handle_task_result)
     return task
 
+def play_main(player):
+    task = asyncio.create_task(player.play(
+        MAIN_SEQUENCE_FNAME, loop=False))
+    task.add_done_callback(handle_task_result)
+    return task
+
 
 async def main():
     player = ArtNetPlayer()
@@ -176,6 +182,8 @@ async def main():
 
     play_obj = None
     async def reset_to_background():
+        nonlocal play_task
+        nonlocal play_obj
         player.stop()
         await play_task
         play_task = play_background(player)
@@ -190,14 +198,16 @@ async def main():
                 play_obj = wave_obj.play()
 
                 player.stop()
+                print('await play_task')
                 await play_task
-                print('try play main after await')
-                play_task = player.play(MAIN_SEQUENCE_FNAME)
+                print('done await play_task')
+                play_task = play_main(player)
             else:
                 print('Pin fell. Cancelling because we are already playing')
                 await reset_to_background()
         ascension_newly_finished = not player.running and play_obj != None and not play_obj.is_playing()
         if ascension_newly_finished:
+            print('Finished ascension')
             await reset_to_background()
     # GPIO.cleanup()
 
