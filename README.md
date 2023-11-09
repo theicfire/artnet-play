@@ -8,6 +8,7 @@ This repo does two things:
 - python recorder/record.py
 - Send ArtNet data to 127.0.0.1:6454 (default ArtNet port)
 - Press 's' + Enter to stop recording and save the file
+- Move the file to `recorder/main_sequence.json` or `recorder/background.java` (Save as `MAIN_SEQUENCE_FNAME`, `BACKGROUND_FNAME`)
 
 # Pi
 
@@ -38,9 +39,9 @@ This repo does two things:
 
 play.py should be running now, and will run at startup. Note the following:
 
-- BACKGROUND_SEQUENCE_FNAME
-- MAIN_SEQUENCE_FNAME
-- AUDIO_FNAME
+- `BACKGROUND_SEQUENCE_FNAME`
+- `MAIN_SEQUENCE_FNAME`
+- `AUDIO_FNAME`
 
 ## Get Logs
 
