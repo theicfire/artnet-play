@@ -97,9 +97,9 @@ class ArtNetPlayer():
         start_time = time.time()
         i = 0
         if loop:
-            print('Play background sequence')
+            print('Play background LED sequence')
         else:
-            print('Play main sequence')
+            print('Play main LED sequence')
         while self.running:
             entry = data_list[i]
             ms = (time.time() - start_time) * 1000
@@ -190,6 +190,7 @@ async def main():
         play_obj.stop()
         play_obj = None
 
+    ascend_print__s = time.time()
     while True:
         await asyncio.sleep(0.1)
         if GPIO.event_detected(PIN):
@@ -198,17 +199,21 @@ async def main():
                 play_obj = wave_obj.play()
 
                 player.stop()
-                print('await play_task')
                 await play_task
-                print('done await play_task')
                 play_task = play_main(player)
             else:
                 print('Pin fell. Cancelling because we are already playing')
                 await reset_to_background()
-        ascension_newly_finished = not player.running and play_obj != None and not play_obj.is_playing()
-        if ascension_newly_finished:
-            print('Finished ascension')
-            await reset_to_background()
+        ascension_running = play_obj != None
+        if ascension_running:
+            ascension_finished = not player.running and not play_obj.is_playing()
+            if ascension_finished:
+                print('Finished ascension')
+                await reset_to_background()
+            elif time.time() - ascend_print__s > 2:
+                print('Ascension running..')
+                ascend_print__s = time.time()
+
     # GPIO.cleanup()
 
 
