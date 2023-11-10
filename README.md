@@ -1,7 +1,8 @@
-This repo does two things:
+This repo does a few things:
 
 1. Records artnet data to a file
 2. Sets up and runs a python program on a Raspberry Pi that plays these recordings, and also plays audio
+3. There's some half-working demo code of the ESP32 reading ArtNet and controlling LED strips. We changed paths and instead purchased a [pre-built LED controller](https://chroma.tech/) to speed things up. Note that the pre-built controller is also an ESP32, so this is still a viable option.
 
 # Recording ArtNet
 
