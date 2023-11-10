@@ -64,7 +64,9 @@ class ArtNetPlayer():
     def __init__(self):
         # TODO sock.close() later?
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # self.sock.setblocking(False)
+
+        # Crazy RPI issue. If sending to > 1 ip address and something can't be resolved, sendto will hang :(. So instead just try/catch and don't block.
+        self.sock.setblocking(False)
         # self.loop = asyncio.get_event_loop()
         self.running = False
         file_name = str(
