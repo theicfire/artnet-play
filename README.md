@@ -1,3 +1,5 @@
+Take a look at the main repo for LXStudio, keypad ESP code, and MIDI controller stuff: https://github.com/cstigler/LXStudio-AscensionPod/tree/master
+
 This repo does a few things:
 
 1. Records artnet data to a file
@@ -48,6 +50,3 @@ play.py should be running now, and will run at startup. Note the following:
 
 - `journalctl -u run_play.service -f`
 
-# Setting up the chroma.tech controller
-
-In a private Notion atm: https://www.notion.so/Ascension-Pod-Electronics-Roadmap-c0afe850894a45a8a2818197fb139f11
