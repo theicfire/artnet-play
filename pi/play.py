@@ -75,7 +75,7 @@ class ArtNetPlayer():
             json_data = json.load(f)
             self.main_sequence = [ArtNetData(entry['time'], base64.b64decode(
                 entry['data'])) for entry in json_data]
-        
+
         file_name = str(
             (Path(__file__).parent.parent / "recorder" / BACKGROUND_SEQUENCE_FNAME))
         with open(file_name, 'r') as f:
@@ -99,7 +99,6 @@ class ArtNetPlayer():
         # time.sleep(0.5)
 
     async def play(self, is_main):
-        
 
         loop = not is_main
         self.running = True
@@ -112,6 +111,7 @@ class ArtNetPlayer():
             print('Play main LED sequence')
         else:
             print('Play background LED sequence')
+        exception_count = 0
         while self.running:
             entry = data_list[i]
             ms = (time.time() - start_time) * 1000
@@ -135,9 +135,15 @@ class ArtNetPlayer():
             if self.sock:
                 universe = selected_entry.data[14]
                 # print('play out', selected_entry.time, universe)
-                # TODO make async with loop.sock_sendto .. python 3.11
-                self.sock.sendto(selected_entry.data,
-                                 (ch_to_ip[universe], TARGET_PORT))
+                try:
+                    # TODO make async with loop.sock_sendto .. python 3.11
+                    self.sock.sendto(selected_entry.data,
+                                     (ch_to_ip[universe], TARGET_PORT))
+                except Exception as e:
+                    if exception_count % 100 == 0:
+                        print(f"Sendto err: {e}")
+                        # traceback.print_exc()
+                    exception_count += 1
                 last_played[universe] = selected_entry.data
             else:
                 print('Cannot find socket, quitting..')
@@ -176,6 +182,7 @@ def play_background(player):
     task.add_done_callback(handle_task_result)
     return task
 
+
 def play_main(player):
     task = asyncio.create_task(player.play(
         is_main=True))
@@ -196,6 +203,7 @@ async def main():
     GPIO.add_event_detect(PIN, GPIO.FALLING)
 
     play_obj = None
+
     async def reset_to_background():
         nonlocal play_task
         nonlocal play_obj
