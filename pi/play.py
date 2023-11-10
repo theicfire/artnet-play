@@ -115,7 +115,10 @@ class ArtNetPlayer():
             ms = (time.time() - start_time) * 1000
 
             if ms < entry.time:
-                await asyncio.sleep((entry.time - ms) / 1000.0)
+                if (entry.time - ms) > 1000:
+                    print('Error, would have waited too long: ', (entry.time - ms))
+                else:
+                    await asyncio.sleep((entry.time - ms) / 1000.0)
                 continue
 
             selected_entry = entry
