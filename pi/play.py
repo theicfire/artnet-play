@@ -171,7 +171,7 @@ def handle_task_result(task):
         # This will re-raise any exception that was raised in the task.
         task.result()
     except Exception as e:
-        print(f"An error occurred in play_background: {e}")
+        print(f"An error occurred in handle_task_result: {e}")
         traceback.print_exc()  # This will print the stack trace.
         sys.exit(1)  # Exit the program.
 
