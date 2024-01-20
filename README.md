@@ -30,13 +30,14 @@ This repo does a few things:
 - Make the RPI act as a router, so that it can give the LED controller an ip address and communicate with it.
   - sudo nmcli c add con-name pi-eth-shared type ethernet ifname eth0 ipv4.method shared ipv6.method ignore
   - sudo nmcli c up pi-eth-shared
+- Turn off the "share ethernet" stuff, and now connect to the pi as a client from the macbook. Wifi and ethernet can be on at the same time.
 - Add ssh keys for convenience
   - This could alternatively be done via the Imager program
   - mkdir -p ~/.ssh
   - vim ~/.ssh/authorized_keys
     - add key..
 - Now upload all these files on by running this locally:
-  - rsync -avz ../artnet-play  pi@192.168.1.156:~/
+  - rsync -avz ../artnet-play  pi@10.42.0.1:~/
 - Then run this on the RPI:
   - `cd ~/artnet-play/pi && sudo sh setup_pi.sh`
 
