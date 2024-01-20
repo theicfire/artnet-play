@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # IP address you want to check connectivity with
-IP_ADDRESS="192.168.1.156"
+IP_ADDRESS="c4"
 
 # Infinite loop to keep trying until we can ping the IP address
 while true; do
