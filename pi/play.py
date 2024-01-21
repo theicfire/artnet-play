@@ -52,6 +52,12 @@ if sys.platform == 'linux' or sys.platform == 'linux2':
         10: "10.42.0.3",
         11: "10.42.0.3",
         12: "10.42.0.3",
+        13: "10.42.0.3",
+        14: "10.42.0.3",
+        15: "10.42.0.3",
+        16: "10.42.0.3",
+        17: "10.42.0.3",
+        18: "10.42.0.3",
     }
 
 BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
