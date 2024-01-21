@@ -58,6 +58,7 @@ if sys.platform == 'linux' or sys.platform == 'linux2':
         16: "10.42.0.3",
         17: "10.42.0.3",
         18: "10.42.0.3",
+        19: "10.42.0.3",
     }
 
 BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
@@ -215,9 +216,10 @@ async def main():
         nonlocal play_obj
         player.stop()
         await play_task
-        play_task = play_background(player)
         play_obj.stop()
         play_obj = None
+        await asyncio.sleep(.5) # Not sure if important, worried that the controller gets into a bad state if stuff from a different recording plays right after the previous
+        play_task = play_background(player)
 
     ascend_print__s = time.time()
     while True:
