@@ -11,7 +11,7 @@ This repo does a few things:
 - python recorder/record.py
 - Send ArtNet data to 127.0.0.1:6454 (default ArtNet port)
 - Press 's' + Enter to stop recording and save the file
-- Move the file to `recorder/main_sequence.json` or `recorder/background.json` (Save as `MAIN_SEQUENCE_FNAME`, `BACKGROUND_FNAME`)
+- Move the file to `recorder/main_sequence.json` or `recorder/background_sequence.json` (Save as `MAIN_SEQUENCE_FNAME`, `BACKGROUND_FNAME`)
 
 # Pi
 
