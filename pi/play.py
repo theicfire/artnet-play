@@ -73,7 +73,7 @@ AUDIO_FNAMES = [
     'alchemization6.wav'
 ]
 
-SERIAL_PORT = '/dev/ttyUSB0'  # or '/dev/ttyACM0' depending on your setup
+SERIAL_PORT = '/dev/serial0'  # Default to built-in UART
 BAUD_RATE = 9600
 
 class ArtNetPlayer():
@@ -232,7 +232,7 @@ async def main():
         print(f"Listening on serial port {SERIAL_PORT}")
     except serial.SerialException:
         try:
-            SERIAL_PORT = '/dev/ttyAMA0'
+            SERIAL_PORT = '/dev/ttyUSB0'
             ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
             print(f"Listening on serial port {SERIAL_PORT}")
         except serial.SerialException:
