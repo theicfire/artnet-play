@@ -65,16 +65,22 @@ if sys.platform == 'linux' or sys.platform == 'linux2':
 BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
 MAIN_SEQUENCE_FNAME = 'main_sequence.json'
 AUDIO_FNAMES = [
-    'alchemization1.wav',
-    'alchemization2.wav',
-    'alchemization3.wav',
-    'alchemization4.wav',
-    'alchemization5.wav',
-    'alchemization6.wav'
+    'alchemization-generic-alpha.wav',
+    'alchemization-generic-alpha.wav',
+    'alchemization-generic-alpha.wav',
+    'alchemization-generic-alpha.wav',
+    'alchemization-generic-alpha.wav',
+    'alchemization-generic-alpha.wav'
 ]
 
 SERIAL_PORT = '/dev/serial0'  # Default to built-in UART
 BAUD_RATE = 9600
+
+# Define IP ranges for easier error handling
+IP_RANGES = {
+    "10.42.0.2": range(0, 8),    # Channels 0-7
+    "10.42.0.3": range(8, 20),   # Channels 8-19
+}
 
 class ArtNetPlayer():
 
@@ -86,6 +92,8 @@ class ArtNetPlayer():
         self.sock.setblocking(False)
         # self.loop = asyncio.get_event_loop()
         self.running = False
+        self.last_played = {}
+        self.failed_ips = set()  # Track which IPs have failed
         file_name = str(
             (Path(__file__).parent.parent / "recorder" / MAIN_SEQUENCE_FNAME))
         with open(file_name, 'r') as f:
@@ -101,34 +109,39 @@ class ArtNetPlayer():
                 entry['data'])) for entry in json_data]
 
     def fade_out(self, universe_last_played):
-        # TODO better brightness curve
         FPS = 60
         FADE_TIME__ms = 250
         NUM_STEPS = int(FPS * FADE_TIME__ms / 1000.0)
+        sequence_errors = set()  # Track errors just for this fade out
+        
         for i in range(NUM_STEPS + 1):
             for universe, raw_data in universe_last_played.items():
+                ip = ch_to_ip[universe]
                 data = bytearray(raw_data)
                 for j in range(18, len(data)):
                     data[j] = int(data[j] * (NUM_STEPS - i) / NUM_STEPS)
                 if self.sock:
-                    self.sock.sendto(data, (ch_to_ip[universe], TARGET_PORT))
+                    try:
+                        self.sock.sendto(data, (ip, TARGET_PORT))
+                    except Exception as e:
+                        if ip not in sequence_errors:
+                            print(f"Warning: LED interface {ip} not responding (channels {min(IP_RANGES[ip])}-{max(IP_RANGES[ip])})")
+                            sequence_errors.add(ip)
             time.sleep(1.0 / FPS)
-        # time.sleep(0.5)
 
     async def play(self, is_main):
-
         loop = not is_main
         self.running = True
-        data_list = []
-        last_played = {}  # universe -> data
         data_list = self.main_sequence if is_main else self.background_sequence
         start_time = time.time()
         i = 0
+        sequence_errors = set()  # Track errors just for this sequence
+        
         if is_main:
             print('Play main LED sequence')
         else:
             print('Play background LED sequence')
-        exception_count = 0
+
         while self.running:
             entry = data_list[i]
             ms = (time.time() - start_time) * 1000
@@ -151,17 +164,15 @@ class ArtNetPlayer():
 
             if self.sock:
                 universe = selected_entry.data[14]
-                # print('play out', selected_entry.time, universe)
+                ip = ch_to_ip[universe]
                 try:
-                    # TODO make async with loop.sock_sendto .. python 3.11
                     self.sock.sendto(selected_entry.data,
-                                     (ch_to_ip[universe], TARGET_PORT))
+                                   (ip, TARGET_PORT))
                 except Exception as e:
-                    if exception_count % 100 == 0:
-                        print(f"Sendto err: {e}")
-                        # traceback.print_exc()
-                    exception_count += 1
-                last_played[universe] = selected_entry.data
+                    if ip not in sequence_errors:  # Only show one error per IP per sequence
+                        print(f"Warning: LED interface {ip} not responding (channels {min(IP_RANGES[ip])}-{max(IP_RANGES[ip])})")
+                        sequence_errors.add(ip)
+                self.last_played[universe] = selected_entry.data
             else:
                 print('Cannot find socket, quitting..')
                 sys.exit(1)
@@ -170,7 +181,7 @@ class ArtNetPlayer():
             print('Done playing main sequence')
         else:
             print('Fade out')
-            self.fade_out(last_played)
+            self.fade_out(self.last_played)
             print('Done playing background sequence')
 
     def stop(self):
@@ -209,7 +220,6 @@ def play_main(player):
 
 async def main():
     player = ArtNetPlayer()
-    audio_fname = str(Path(__file__).with_name(AUDIO_FNAME))
 
     # Load all audio files
     wave_objs = []
@@ -227,17 +237,32 @@ async def main():
     GPIO.add_event_detect(PIN, GPIO.FALLING)
 
     # Setup serial
-    try:
-        ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
-        print(f"Listening on serial port {SERIAL_PORT}")
-    except serial.SerialException:
+    ser = None
+    serial_ports = ['/dev/serial', '/dev/S0', '/dev/ttyUSB0']  # Try these ports in order
+    
+    for port in serial_ports:
         try:
-            SERIAL_PORT = '/dev/ttyUSB0'
-            ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
-            print(f"Listening on serial port {SERIAL_PORT}")
+            ser = serial.Serial(
+                port=SERIAL_PORT,
+                baudrate=BAUD_RATE,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=1
+            )
+            print(f"Successfully opened {ser.name} with settings:")
+            print(f"Baudrate: {ser.baudrate}")
+            print(f"Bytesize: {ser.bytesize}")
+            print(f"Parity: {ser.parity}")
+            print(f"Stopbits: {ser.stopbits}")
+            print(f"Port settings: {ser.get_settings()}")
+            break
         except serial.SerialException:
-            print(f"Warning: Could not open any serial port. Falling back to GPIO only.")
-            ser = None
+            print(f"Failed to open {SERIAL_PORT}: {e}")
+            continue
+    
+    if not ser:
+        print("Warning: Could not open any serial port. Falling back to GPIO only.")
 
     async def reset_to_background():
         nonlocal play_task
@@ -253,7 +278,7 @@ async def main():
         nonlocal play_task
         nonlocal play_obj
         if play_obj is None:
-            print(f"Playing track {track_num + 1}")
+            print(f"Playing track {track_num}")
             play_obj = wave_objs[track_num].play()
 
             player.stop()
@@ -265,16 +290,25 @@ async def main():
             await reset_to_background()
 
     ascend_print__s = time.time()
+    print(f"Starting main loop with serial port: {SERIAL_PORT}")
+    serial_check_count = 0
     while True:
         await asyncio.sleep(0.1)
         
         # Check serial input
         if ser:
+            serial_check_count += 1
+            if serial_check_count % 100 == 0:  # Print every 10 seconds
+                print(f"Checking serial... in_waiting: {ser.in_waiting}")
             try:
                 if ser.in_waiting:
                     track_num = int.from_bytes(ser.read(), byteorder='big')
+                    print(f"Received data on serial: {track_num}")
                     if 0 <= track_num < len(wave_objs):
+                        print(f"Valid track number, triggering track {track_num}")
                         await trigger_track(track_num)
+                    else:
+                        print(f"Invalid track number received: {track_num}")
             except serial.SerialException as e:
                 print(f"Serial error: {e}")
                 continue
