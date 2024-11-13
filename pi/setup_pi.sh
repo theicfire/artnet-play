@@ -20,6 +20,10 @@ fi
 # TODO make requirements.txt
 /home/pi/artnet-play/pi/venv/bin/pip install simpleaudio
 /home/pi/artnet-play/pi/venv/bin/pip  install RPi.GPIO
+/home/pi/artnet-play/pi/venv/bin/pip install pyserial
+
+# ensure service has the right permissions to access the serial port
+sudo usermod -a -G dialout pi
 
 # Define the service file path
 PLAY_SERVICE_FILE=run_play.service

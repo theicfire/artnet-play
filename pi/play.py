@@ -7,6 +7,7 @@ import socket
 import time
 import base64
 import json
+import serial
 
 if sys.platform == 'linux' or sys.platform == 'linux2':
     import RPi.GPIO as GPIO
@@ -63,8 +64,17 @@ if sys.platform == 'linux' or sys.platform == 'linux2':
 
 BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
 MAIN_SEQUENCE_FNAME = 'main_sequence.json'
-AUDIO_FNAME = 'ascension.wav'
+AUDIO_FNAMES = [
+    'alchemization1.wav',
+    'alchemization2.wav',
+    'alchemization3.wav',
+    'alchemization4.wav',
+    'alchemization5.wav',
+    'alchemization6.wav'
+]
 
+SERIAL_PORT = '/dev/ttyUSB0'  # or '/dev/ttyACM0' depending on your setup
+BAUD_RATE = 9600
 
 class ArtNetPlayer():
 
@@ -200,16 +210,34 @@ def play_main(player):
 async def main():
     player = ArtNetPlayer()
     audio_fname = str(Path(__file__).with_name(AUDIO_FNAME))
-    wave_obj = sa.WaveObject.from_wave_file(audio_fname)
+
+    # Load all audio files
+    wave_objs = []
+    for fname in AUDIO_FNAMES:
+        audio_fname = str(Path(__file__).with_name(fname))
+        wave_objs.append(sa.WaveObject.from_wave_file(audio_fname))
 
     play_task = play_background(player)
+    play_obj = None
 
+    # Setup legacy GPIO interface
     PIN = 3  # AKA GPIO2
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(PIN, GPIO.IN)
     GPIO.add_event_detect(PIN, GPIO.FALLING)
 
-    play_obj = None
+    # Setup serial
+    try:
+        ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
+        print(f"Listening on serial port {SERIAL_PORT}")
+    except serial.SerialException:
+        try:
+            SERIAL_PORT = '/dev/ttyAMA0'
+            ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
+            print(f"Listening on serial port {SERIAL_PORT}")
+        except serial.SerialException:
+            print(f"Warning: Could not open any serial port. Falling back to GPIO only.")
+            ser = None
 
     async def reset_to_background():
         nonlocal play_task
@@ -221,22 +249,42 @@ async def main():
         await asyncio.sleep(.5) # Not sure if important, worried that the controller gets into a bad state if stuff from a different recording plays right after the previous
         play_task = play_background(player)
 
+    async def trigger_track(track_num):
+        nonlocal play_task
+        nonlocal play_obj
+        if play_obj is None:
+            print(f"Playing track {track_num + 1}")
+            play_obj = wave_objs[track_num].play()
+
+            player.stop()
+            await play_task
+            print("Now play main")
+            play_task = play_main(player)
+        else:
+            print('Already playing. Resetting to background.')
+            await reset_to_background()
+
     ascend_print__s = time.time()
     while True:
         await asyncio.sleep(0.1)
-        if GPIO.event_detected(PIN):
-            if play_obj == None:
-                print("Pin fell! Now read: ", GPIO.event_detected(PIN))
-                play_obj = wave_obj.play()
+        
+        # Check serial input
+        if ser:
+            try:
+                if ser.in_waiting:
+                    track_num = int.from_bytes(ser.read(), byteorder='big')
+                    if 0 <= track_num < len(wave_objs):
+                        await trigger_track(track_num)
+            except serial.SerialException as e:
+                print(f"Serial error: {e}")
+                continue
 
-                player.stop()
-                await play_task
-                print("Now play main")
-                play_task = play_main(player)
-            else:
-                print('Pin fell. Cancelling because we are already playing')
-                await reset_to_background()
-        ascension_running = play_obj != None
+        # Check legacy GPIO input
+        if GPIO.event_detected(PIN):
+            print("Legacy GPIO trigger detected")
+            await trigger_track(0)  # Play first track
+
+        ascension_running = play_obj is not None
         if ascension_running:
             ascension_finished = not player.running and not play_obj.is_playing()
             if ascension_finished:
@@ -245,6 +293,9 @@ async def main():
             elif time.time() - ascend_print__s > .5:
                 print('Ascension running..')
                 ascend_print__s = time.time()
+
+    if ser:
+        ser.close()
 
     # GPIO.cleanup()
 
