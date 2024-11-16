@@ -65,12 +65,12 @@ if sys.platform == 'linux' or sys.platform == 'linux2':
 BACKGROUND_SEQUENCE_FNAME = 'background_sequence.json'
 MAIN_SEQUENCE_FNAME = 'main_sequence.json'
 AUDIO_FNAMES = [
-    'alchemization-generic-alpha.wav',
-    'alchemization-generic-alpha.wav',
-    'alchemization-generic-alpha.wav',
-    'alchemization-generic-alpha.wav',
-    'alchemization-generic-alpha.wav',
-    'alchemization-generic-alpha.wav'
+    'alchemization.wav',
+    'alchemization.wav',
+    'alchemization.wav',
+    'alchemization.wav',
+    'alchemization.wav',
+    'alchemization.wav',
 ]
 
 SERIAL_PORT = '/dev/serial0'  # Default to built-in UART
